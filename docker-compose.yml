@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  jordan-bot:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - bot-session:/app/bots/jordan-bot/session
+      - bot-session:/app/bots/jordan-bot/auth_info_baileys
+      - bot-session:/app/bots/jordan-bot/GataBotMD_auth_info
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  bot-session:
