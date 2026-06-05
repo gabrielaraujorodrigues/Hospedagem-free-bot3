@@ -1,0 +1,346 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Jordan Bot - WhatsApp Bot Hosting Platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: bot
+    description: WhatsApp bot management
+  - name: node
+    description: Node.js version management
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /bot/status:
+    get:
+      operationId: getBotStatus
+      tags: [bot]
+      summary: Get bot status
+      description: Returns current bot status, uptime, and connection info
+      responses:
+        "200":
+          description: Bot status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/start:
+    post:
+      operationId: startBot
+      tags: [bot]
+      summary: Start the bot
+      description: Starts the WhatsApp bot process
+      responses:
+        "200":
+          description: Bot start result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotActionResult"
+
+  /bot/stop:
+    post:
+      operationId: stopBot
+      tags: [bot]
+      summary: Stop the bot
+      description: Stops the WhatsApp bot process
+      responses:
+        "200":
+          description: Bot stop result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotActionResult"
+
+  /bot/restart:
+    post:
+      operationId: restartBot
+      tags: [bot]
+      summary: Restart the bot
+      description: Restarts the WhatsApp bot process
+      responses:
+        "200":
+          description: Bot restart result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotActionResult"
+
+  /bot/pairing-code:
+    post:
+      operationId: requestPairingCode
+      tags: [bot]
+      summary: Request 8-digit pairing code
+      description: Request WhatsApp pairing code for a phone number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PairingCodeRequest"
+      responses:
+        "200":
+          description: Pairing code response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PairingCodeResult"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bot/logs:
+    get:
+      operationId: getBotLogs
+      tags: [bot]
+      summary: Get recent bot logs
+      description: Returns recent log lines from the bot process
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: Max number of log lines to return
+      responses:
+        "200":
+          description: Log lines
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotLogs"
+
+  /bot/stats:
+    get:
+      operationId: getBotStats
+      tags: [bot]
+      summary: Get bot statistics
+      description: Returns bot performance statistics
+      responses:
+        "200":
+          description: Bot stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStats"
+
+  /bot/reset:
+    post:
+      operationId: resetBotSession
+      tags: [bot]
+      summary: Reset bot session
+      description: Deletes the bot session files and resets connection
+      responses:
+        "200":
+          description: Reset result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotActionResult"
+
+  /bot/auto-restart:
+    get:
+      operationId: getAutoRestart
+      tags: [bot]
+      summary: Get auto-restart setting
+      responses:
+        "200":
+          description: Auto-restart config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoRestartConfig"
+    post:
+      operationId: setAutoRestart
+      tags: [bot]
+      summary: Configure auto-restart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AutoRestartConfig"
+      responses:
+        "200":
+          description: Updated config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoRestartConfig"
+
+  /node/info:
+    get:
+      operationId: getNodeInfo
+      tags: [node]
+      summary: Get Node.js version information
+      description: Returns current Node.js version and available versions
+      responses:
+        "200":
+          description: Node.js info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NodeInfo"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    BotStatus:
+      type: object
+      required: [state, pid, uptime, autoRestart, botName, nodeVersion]
+      properties:
+        state:
+          type: string
+          enum: [stopped, starting, running, connected, disconnected, error]
+        pid:
+          type: ["integer", "null"]
+        uptime:
+          type: ["integer", "null"]
+          description: Uptime in seconds
+        autoRestart:
+          type: boolean
+        botName:
+          type: string
+        nodeVersion:
+          type: string
+        phoneNumber:
+          type: ["string", "null"]
+        qrCode:
+          type: ["string", "null"]
+        restartCount:
+          type: integer
+
+    BotActionResult:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    PairingCodeRequest:
+      type: object
+      required: [phoneNumber]
+      properties:
+        phoneNumber:
+          type: string
+          description: Phone number in international format (e.g. 5511999999999)
+
+    PairingCodeResult:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: ["string", "null"]
+          description: The 8-digit pairing code
+
+    BotLogs:
+      type: object
+      required: [logs]
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogEntry"
+
+    LogEntry:
+      type: object
+      required: [timestamp, level, message]
+      properties:
+        timestamp:
+          type: string
+        level:
+          type: string
+          enum: [info, warn, error, debug]
+        message:
+          type: string
+
+    BotStats:
+      type: object
+      required: [totalRestarts, uptime, state, autoRestart]
+      properties:
+        totalRestarts:
+          type: integer
+        uptime:
+          type: ["integer", "null"]
+        state:
+          type: string
+        autoRestart:
+          type: boolean
+        startedAt:
+          type: ["string", "null"]
+        lastRestartAt:
+          type: ["string", "null"]
+
+    AutoRestartConfig:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+        delaySeconds:
+          type: integer
+          default: 5
+
+    NodeInfo:
+      type: object
+      required: [current, versions]
+      properties:
+        current:
+          type: string
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/NodeVersion"
+
+    NodeVersion:
+      type: object
+      required: [version, available]
+      properties:
+        version:
+          type: string
+        available:
+          type: boolean
+        description:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
