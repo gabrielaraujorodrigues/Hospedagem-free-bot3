@@ -24,7 +24,7 @@ router.get("/bot/status", async (_req, res): Promise<void> => {
 });
 
 router.post("/bot/start", async (_req, res): Promise<void> => {
-  const started = botManager.start("normal");
+  const started = botManager.start("qr");
   res.json(
     StartBotResponse.parse({
       success: started,
@@ -112,6 +112,16 @@ router.post("/bot/auto-restart", async (req, res): Promise<void> => {
   botManager.setAutoRestart(enabled, delaySeconds ?? 5);
   const config = botManager.getAutoRestartConfig();
   res.json(SetAutoRestartResponse.parse(config));
+});
+
+router.post("/bot/reset-qr", async (_req, res): Promise<void> => {
+  const ok = botManager.resetAndStartQR();
+  res.json({ success: ok, message: ok ? "Sessão apagada. Bot reiniciado em modo QR." : "Falha ao resetar sessão." });
+});
+
+router.get("/bot/files", async (_req, res): Promise<void> => {
+  const info = botManager.getSessionFilesInfo();
+  res.json(info);
 });
 
 export default router;
