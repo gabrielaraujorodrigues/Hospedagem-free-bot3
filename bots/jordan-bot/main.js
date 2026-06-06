@@ -256,12 +256,12 @@ global.db
 console.log('Base de datos lista')
 })
 .catch((err) => {
-console.erro('Erro cargando base de datos:', err)
+console.error('Erro ao carregar banco de dados:', err)
 })
 
 async function gracefulShutdown() {
 await global.db.save()
-console.log('Guardando base de datos antes de cerrar...')
+console.log('Salvando banco de dados antes de encerrar...')
 process.exit(0)
 }
 process.on('SIGINT', gracefulShutdown)
@@ -423,7 +423,7 @@ return
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
 const newBackup = join(respaldoDir, `creds-${timestamp}.json`)
 fs.copyFileSync(credsFile, newBackup)
-console.log(`[✅] Respaldo creado: ${newBackup}`)
+console.log(`[✅] Backup criado: ${newBackup}`)
 const backups = fs
 .readdirSync(respaldoDir)
 .filter((file) => file.startsWith('creds-') && file.endsWith('.json'))
@@ -431,7 +431,7 @@ const backups = fs
 while (backups.length > 3) {
 const oldest = backups.shift()
 fs.unlinkSync(join(respaldoDir, oldest))
-console.log(`[🗑️] Respaldo antiguo removido: ${oldest}`)
+console.log(`[🗑️] Backup antigo removido: ${oldest}`)
 }
 }
 
@@ -441,18 +441,18 @@ const backups = fs
 .filter((file) => file.startsWith('creds-') && file.endsWith('.json'))
 .sort((a, b) => fs.statSync(join(respaldoDir, b)).mtimeMs - fs.statSync(join(respaldoDir, a)).mtimeMs)
 if (backups.length === 0) {
-console.log('[⚠] No hay respaldos disponibles para restaurar.')
+console.log('[⚠] Nenhum backup disponível para restaurar.')
 return
 }
 const latestBackup = join(respaldoDir, backups[0])
 fs.copyFileSync(latestBackup, credsFile)
-console.log(`[✅] Restaurado desde respaldo: ${backups[0]}`)
+console.log(`[✅] Restaurado do backup: ${backups[0]}`)
 }
 
 setInterval(
 async () => {
 await backupCreds()
-console.log('[♻️] Respaldo periódico realizado.')
+console.log('[♻️] Backup periódico realizado.')
 },
 5 * 60 * 1000
 )
@@ -466,7 +466,7 @@ if (isNewLogin) conn.isInit = true
 if (connection === 'close' && !existsSync(`./${global.authFile}/creds.json`)) {
 if (!printingNoConn) {
 printingNoConn = true
-await logCritical(chalk.bold.redBright('⚠️ SIN CONEXÃO, BORRE LA CARPETA GataBotSession Y ESCANEA EL CÓDIGO QR ⚠️'))
+await logCritical(chalk.bold.redBright('⚠️ SEM CONEXÃO — APAGUE A PASTA GataBotSession E ESCANEIE O CÓDIGO QR ⚠️'))
 setTimeout(() => {
 printingNoConn = false
 }, 1500)
@@ -778,7 +778,7 @@ const directories = ['./GataBotSession/', './GataJadiBot/']
 for (const dir of directories) {
 try {
 if (!fs.existsSync(dir)) {
-console.log(chalk.yellow(`[⚠] Carpeta no existe: ${dir}`))
+console.log(chalk.yellow(`[⚠] Pasta não existe: ${dir}`))
 continue
 }
 const files = await fsPromises.readdir(dir)
