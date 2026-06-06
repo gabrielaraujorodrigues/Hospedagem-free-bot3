@@ -269,29 +269,77 @@ class BotManager {
     return codePromise;
   }
 
+  private getSessionDirs() {
+    return [
+      path.join(BOT_DIR, "GataBotSession"),
+      path.join(BOT_DIR, "GataJadiBot"),
+      path.join(BOT_DIR, "BackupSession"),
+    ];
+  }
+
   resetSession(): boolean {
     this.stop();
-    const sessionDirs = [
-      path.join(BOT_DIR, "session"),
-      path.join(BOT_DIR, "sessions"),
-      path.join(BOT_DIR, "auth_info_baileys"),
-      path.join(BOT_DIR, "GataBotMD_auth_info"),
-      path.join(BOT_DIR, "credentials"),
-    ];
+    const sessionDirs = this.getSessionDirs();
 
     let deleted = 0;
     for (const dir of sessionDirs) {
       if (fs.existsSync(dir)) {
         fs.rmSync(dir, { recursive: true, force: true });
         deleted++;
-        this.addLog("info", `Deleted session directory: ${path.basename(dir)}`);
+        this.addLog("info", `Pasta de sessão apagada: ${path.basename(dir)}`);
       }
     }
 
     this.qrCode = null;
     this.phoneNumber = null;
-    this.addLog("info", `Session reset complete. Deleted ${deleted} session director${deleted === 1 ? "y" : "ies"}.`);
+    this.addLog("info", `Reset completo. ${deleted} pasta(s) removida(s).`);
     return true;
+  }
+
+  resetAndStartQR(): boolean {
+    this.addLog("info", "Resetando sessão e reiniciando em modo QR...");
+    this.stop();
+    const sessionDirs = this.getSessionDirs();
+    for (const dir of sessionDirs) {
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+        this.addLog("info", `Apagado: ${path.basename(dir)}`);
+      }
+    }
+    this.qrCode = null;
+    this.phoneNumber = null;
+    setTimeout(() => this.start("qr"), 1500);
+    return true;
+  }
+
+  getSessionFilesInfo(): { dirs: Array<{ name: string; exists: boolean; sizeMB: number; files: number; path: string }> } {
+    const getDirSize = (dirPath: string): { sizeMB: number; files: number } => {
+      if (!fs.existsSync(dirPath)) return { sizeMB: 0, files: 0 };
+      let totalBytes = 0;
+      let fileCount = 0;
+      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+        if (entry.isFile()) {
+          try { totalBytes += fs.statSync(fullPath).size; fileCount++; } catch { /* ignore */ }
+        } else if (entry.isDirectory()) {
+          const sub = getDirSize(fullPath);
+          totalBytes += sub.sizeMB * 1024 * 1024;
+          fileCount += sub.files;
+        }
+      }
+      return { sizeMB: totalBytes / (1024 * 1024), files: fileCount };
+    };
+
+    const sessionDirs = this.getSessionDirs();
+    const dirs = sessionDirs.map((dirPath) => {
+      const name = path.basename(dirPath);
+      const exists = fs.existsSync(dirPath);
+      const { sizeMB, files } = exists ? getDirSize(dirPath) : { sizeMB: 0, files: 0 };
+      return { name, exists, sizeMB, files, path: dirPath };
+    });
+
+    return { dirs };
   }
 
   getStatus(): BotStatus {
