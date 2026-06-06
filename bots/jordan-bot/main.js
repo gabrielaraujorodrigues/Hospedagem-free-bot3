@@ -341,7 +341,7 @@ const connectionOptions = {
 logger: pino({level: 'silent'}),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: opcion == '1' ? ['GataBot-MD', 'Edge', '20.0.04'] : methodCodeQR ? ['GataBot-MD', 'Edge', '20.0.04'] : ['Ubuntu', 'Chrome', '20.0.04'],
+browser: opcion == '1' ? ['Ubuntu', 'Chrome', '124.0.0'] : methodCodeQR ? ['Ubuntu', 'Chrome', '124.0.0'] : ['Ubuntu', 'Chrome', '124.0.0'],
 auth: {
 creds: state.creds,
 keys: makeCacheableSignalKeyStore(state.keys, Pino({level: 'fatal'}).child({level: 'fatal'}))
@@ -362,7 +362,7 @@ msgRetryCounterCache: msgRetryCounterCache || new Map(),
 userDevicesCache: userDevicesCache || new Map(),
 defaultQueryTimeoutMs: undefined,
 cachedGroupMetadata: (jid) => global.conn?.chats?.[jid] ?? {},
-version: [2, 3000, 1033959288],
+version,
 keepAliveIntervalMs: 55000,
 maxIdleTimeMs: 60000
 }
@@ -417,7 +417,7 @@ if (opts['server']) (await import('./server.js')).default(global.conn, PORT)
 
 const backupCreds = async () => {
 if (!fs.existsSync(credsFile)) {
-console.log('[⚠] No se encontró el arquivo creds.json para respaldar.')
+console.log('[⚠] Arquivo creds.json não encontrado para backup.')
 return
 }
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
